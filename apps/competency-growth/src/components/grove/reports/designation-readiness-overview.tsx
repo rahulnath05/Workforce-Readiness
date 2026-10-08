@@ -1,9 +1,6 @@
-import { useNavigate } from "react-router-dom"
-import { ArrowRightIcon } from "lucide-react"
 import { cn } from "cn"
 
 import { ReadinessRing } from "@/components/grove/reports/readiness-ring"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import type { RoleLevel } from "@/domain/types"
 import { getDesignationMeta } from "@/data/workforce/designation-matrix"
@@ -26,38 +23,30 @@ export function DesignationReadinessOverview({
   orgReadiness,
   rows,
   onSelectDesignation,
+  showOverallBadge = true,
 }: {
   orgReadiness: number | null
   rows: DesignationRow[]
   onSelectDesignation: (role: RoleLevel) => void
+  showOverallBadge?: boolean
 }) {
-  const navigate = useNavigate()
-
   return (
-    <Card className="flex w-full flex-col overflow-hidden rounded-[var(--grove-radius-panel)] shadow-none ring-1 ring-forest/10">
-      <CardHeader className="flex shrink-0 flex-row flex-wrap items-center justify-between gap-3 border-b border-border/50 bg-gradient-to-r from-[var(--grove-positive-soft)]/50 to-transparent py-3">
+    <Card className="flex w-full flex-col overflow-hidden rounded-[var(--grove-radius-panel)] shadow-none ring-1 ring-border/80">
+      <CardHeader className="flex shrink-0 flex-row flex-wrap items-center justify-between gap-3 border-b border-border/60 py-3">
         <div className="min-w-0">
-          <CardTitle className="font-heading text-base">Readiness by designation</CardTitle>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Weighted across published profiles</p>
+          <CardTitle className="font-heading text-base">Role comparison</CardTitle>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">Weighted readiness by designation — select to drill to people</p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="rounded-lg bg-forest px-3 py-1.5 text-right text-white">
-            <p className="text-xl font-semibold tabular-nums leading-none">
-              {orgReadiness !== null ? `${orgReadiness}%` : "—"}
-            </p>
-            <p className="text-[9px] text-white/75">Overall</p>
+        {showOverallBadge && (
+          <div className="flex items-center gap-3">
+            <div className="min-w-[5.5rem] rounded-lg bg-forest px-4 py-2 text-center text-white sm:min-w-[6.5rem]">
+              <p className="text-xl font-semibold tabular-nums leading-none">
+                {orgReadiness !== null ? `${orgReadiness}%` : "—"}
+              </p>
+              <p className="text-[9px] text-white/75">Overall</p>
+            </div>
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="hidden text-forest hover:bg-[var(--grove-positive-soft)]/50 sm:inline-flex"
-            onClick={() => navigate("/people")}
-          >
-            All people
-            <ArrowRightIcon className="size-3.5" aria-hidden />
-          </Button>
-        </div>
+        )}
       </CardHeader>
       <CardContent className="px-4 py-3">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
@@ -72,7 +61,7 @@ export function DesignationReadinessOverview({
                 disabled={muted}
                 onClick={() => onSelectDesignation(row.designation)}
                 className={cn(
-                  "group flex flex-col items-center gap-1.5 rounded-lg border border-border/70 bg-[var(--grove-surface-subtle)] px-1.5 py-3 text-center transition-all",
+                  "group flex flex-col items-center gap-1.5 rounded-lg border border-border bg-card px-1.5 py-3 text-center shadow-sm ring-1 ring-foreground/5 transition-all",
                   !muted && "hover:border-forest/30 hover:bg-[var(--grove-positive-soft)]/40",
                   muted && "opacity-50",
                 )}

@@ -1,23 +1,16 @@
 import { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { FileSpreadsheetIcon, FileTextIcon, TableIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { useWorkspace } from "@/app/WorkspaceProvider"
 import { DesignationReadinessOverview } from "@/components/grove/reports/designation-readiness-overview"
+import { ReportsExceptionList } from "@/components/grove/reports/reports-exception-list"
+import { ReportsExportPanel } from "@/components/grove/reports/reports-export-panel"
+import { ReportsOutcomeHero } from "@/components/grove/reports/reports-outcome-hero"
+import { ReportsScopeBar } from "@/components/grove/reports/reports-scope-bar"
+import { ReportsStrategicInsight } from "@/components/grove/reports/reports-strategic-insight"
 import { PageIntro } from "@/components/grove/page-intro"
-import { StatCard } from "@/components/grove/stat-card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { EXPORT_PACKS } from "@/data/workforce/reports"
+import { ReviewQueuePanel } from "@/components/grove/reports/review-queue-panel"
 import {
   atRiskCatalogueRows,
   awaitingReviews,
@@ -27,14 +20,6 @@ import {
 import type { RoleLevel } from "@/domain/types"
 import { buildProfileCatalogue, orgReadinessFromCatalogue, profileCoverage } from "@/domain/selectors"
 import { MVP_COMPETENCY_CODE } from "@/data/taxonomy"
-import { AtRiskCohortBoard } from "@/components/grove/reports/at-risk-cohort-board"
-import { ReviewQueuePanel } from "@/components/grove/reports/review-queue-panel"
-
-const FORMAT_ICONS = {
-  PDF: FileTextIcon,
-  XLSX: FileSpreadsheetIcon,
-  CSV: TableIcon,
-} as const
 
 export function ReportsPage() {
   const { persona } = useWorkspace()
@@ -101,97 +86,66 @@ function LeaderReportsDashboard() {
     (c) => c.competencyCode === activeCompetencyCode,
   )
 
+  const competencyOptions = competencies
+    .filter((c) => scopeCodes.includes(c.code))
+    .map((c) => ({ code: c.code, name: c.name }))
+
+  const weakest = useMemo(() => {
+    const withPct = designationRows.filter((r) => r.readinessPct !== null)
+    if (!withPct.length) return { designation: null as RoleLevel | null, pct: null as number | null }
+    const sorted = [...withPct].sort((a, b) => (a.readinessPct ?? 0) - (b.readinessPct ?? 0))
+    const w = sorted[0]
+    return { designation: w.designation, pct: w.readinessPct }
+  }, [designationRows])
+
   return (
-    <div className="flex flex-col gap-4">
-      <PageIntro
-        eyebrow={scopeLabel}
-        title="Reports"
-        secondary="Export"
-        onSecondary={() => toast.success("Board pack queued", { description: "PDF generating" })}
+    <div className="flex flex-col gap-6">
+      <ReportsScopeBar
+        scopeLabel={scopeLabel}
+        competencyFilter={competencyFilter}
+        cohortFilter={cohortFilter}
+        onCompetencyChange={setCompetencyFilter}
+        onCohortChange={setCohortFilter}
+        competencies={competencyOptions}
+        cohorts={scopedCohorts.map((c) => ({ id: c.id, name: c.name }))}
+        onExport={() => toast.success("Board pack queued", { description: "PDF generating" })}
       />
 
-      <div className="flex flex-wrap gap-2">
-        <Select value={competencyFilter} onValueChange={(v) => v && setCompetencyFilter(v)}>
-          <SelectTrigger className="w-44" aria-label="Competency filter">
-            <SelectValue placeholder="Competency" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All competencies</SelectItem>
-            {competencies.filter((c) => scopeCodes.includes(c.code)).map((c) => (
-              <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={cohortFilter} onValueChange={(v) => v && setCohortFilter(v)}>
-          <SelectTrigger className="w-44" aria-label="Cohort filter">
-            <SelectValue placeholder="Cohort" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All cohorts</SelectItem>
-            {scopedCohorts.map((c) => (
-              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <ReportsOutcomeHero
+        readiness={orgReadiness}
+        benchmarkPublished={coverage.published}
+        benchmarkTotal={coverage.total}
+        atRiskTotal={atRiskTotal}
+        reviewCount={reviewCount}
+      />
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <StatCard
-          label="Readiness"
-          value={orgReadiness !== null ? `${orgReadiness}%` : "—"}
-          tone="dark"
-        />
-        <StatCard
-          label="Benchmarks"
-          value={`${coverage.published}/${coverage.total}`}
-          hint="Published profiles"
-        />
-        <StatCard label="At risk" value={String(atRiskTotal)} hint="Learners behind" />
-        <StatCard label="Reviews" value={String(reviewCount)} hint="Awaiting sign-off" />
-      </div>
+      <ReportsStrategicInsight
+        readiness={orgReadiness}
+        atRiskTotal={atRiskTotal}
+        weakestDesignation={weakest.designation}
+        weakestPct={weakest.pct}
+        reviewCount={reviewCount}
+      />
 
       <DesignationReadinessOverview
         orgReadiness={orgReadiness}
         rows={designationRows}
+        showOverallBadge={false}
         onSelectDesignation={(role: RoleLevel) => {
           setHeatmapFilter({ role })
           navigate("/people")
         }}
       />
 
-      <AtRiskCohortBoard rows={riskRows} people={people} />
-
-      <ReviewQueuePanel queue={queue} people={people} />
-
-      <Card className="rounded-[var(--grove-radius-panel)] shadow-none">
-        <CardHeader className="pb-2">
-          <CardTitle className="font-heading text-base">Export packs</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3 sm:grid-cols-2">
-          {EXPORT_PACKS.map((pack) => {
-            const Icon = FORMAT_ICONS[pack.format]
-            return (
-              <button
-                key={pack.id}
-                type="button"
-                className="flex items-start gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted/50"
-                onClick={() =>
-                  toast.success("Export queued", {
-                    description: `${pack.label} · ${pack.format}`,
-                  })
-                }
-              >
-                <Icon className="mt-0.5 size-5 shrink-0 text-forest" aria-hidden />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">{pack.label}</p>
-                  <p className="text-xs text-muted-foreground">{pack.updated}</p>
-                </div>
-                <Badge variant="outline" className="shrink-0 text-[10px]">{pack.format}</Badge>
-              </button>
-            )
-          })}
-        </CardContent>
-      </Card>
+      <div className="grid gap-4 lg:grid-cols-12 lg:items-start">
+        <div className="min-w-0 lg:col-span-8">
+          <ReportsExceptionList rows={riskRows} />
+        </div>
+        <div className="flex min-w-0 flex-col gap-4 lg:col-span-4">
+          <ReviewQueuePanel queue={queue} people={people} />
+          <ReportsExportPanel />
+        </div>
+      </div>
     </div>
   )
 }

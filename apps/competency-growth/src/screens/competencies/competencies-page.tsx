@@ -1,4 +1,5 @@
 import { Fragment, useMemo, useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { ChevronDownIcon, EyeIcon, PencilIcon } from "lucide-react"
 import { cn } from "cn"
 
@@ -12,7 +13,6 @@ import {
 import { ROLE_LEVELS } from "@/domain/types"
 import { getDesignationMeta } from "@/fixtures/designation-matrix"
 import { formatProficiencyShort } from "@/domain/proficiency"
-import { BenchmarkWizard } from "@/screens/competencies/benchmark-wizard"
 import { PageIntro } from "@/components/grove/page-intro"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -36,8 +36,7 @@ export function CompetenciesPage() {
     cohorts,
     people,
   } = useWorkspace()
-  const [wizardOpen, setWizardOpen] = useState(false)
-  const [wizardSeed, setWizardSeed] = useState<{ code?: string; profileId?: string }>({})
+  const navigate = useNavigate()
   const [expandedProfileId, setExpandedProfileId] = useState<string | null>(null)
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => new Set())
 
@@ -66,8 +65,8 @@ export function CompetenciesPage() {
   const pageTitle = competency ? `${competency.name} benchmarks` : "Benchmarks"
 
   function openWizard(profileId?: string) {
-    setWizardSeed({ code: competencyCode, profileId })
-    setWizardOpen(true)
+    if (profileId) navigate(`/competencies/benchmark?profileId=${encodeURIComponent(profileId)}`)
+    else navigate("/competencies/benchmark")
   }
 
   function toggleGroup(designation: string) {
@@ -90,7 +89,7 @@ export function CompetenciesPage() {
       <PageIntro
         eyebrow="Benchmark catalogue"
         title={pageTitle}
-        lede={`${coverage.published} of ${coverage.total} job profiles published — open metrics on any row for targets and cohort detail.`}
+        lede={`${coverage.published} of ${coverage.total} job profiles published — open metrics on any row, or start a guided journey to publish or update a profile.`}
         primary="New benchmark"
         onPrimary={() => openWizard()}
       />
@@ -167,12 +166,6 @@ export function CompetenciesPage() {
         </CardContent>
       </Card>
 
-      <BenchmarkWizard
-        open={wizardOpen}
-        onOpenChange={setWizardOpen}
-        initialCompetency={wizardSeed.code ?? competencyCode}
-        initialProfileId={wizardSeed.profileId}
-      />
     </div>
   )
 }

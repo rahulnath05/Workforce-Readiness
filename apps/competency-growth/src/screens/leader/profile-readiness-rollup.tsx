@@ -29,6 +29,7 @@ export function ProfileReadinessRollup({
   benchmarkVersions,
   cohorts,
   onProfileNavigate,
+  variant = "card",
 }: {
   competencyCode: string
   scopeLabel: string
@@ -36,6 +37,7 @@ export function ProfileReadinessRollup({
   benchmarkVersions: BenchmarkVersion[]
   cohorts: Cohort[]
   onProfileNavigate?: (jobProfileId: string) => void
+  variant?: "card" | "editorial"
 }) {
   const navigate = useNavigate()
   const { setHeatmapFilter } = useWorkspace()
@@ -71,15 +73,8 @@ export function ProfileReadinessRollup({
     else navigate("/people")
   }
 
-  return (
-    <Card className="rounded-[var(--grove-radius-panel)] shadow-none">
-      <CardHeader>
-        <CardTitle className="font-heading">Profile readiness</CardTitle>
-        <CardDescription>
-          Overall readiness vs published benchmarks by job profile · {scopeLabel}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="overflow-x-auto">
+  const table = (
+    <div className="overflow-x-auto">
         <Table className="table-fixed">
           <colgroup>
             <col className="w-[26%]" />
@@ -178,15 +173,47 @@ export function ProfileReadinessRollup({
             })}
           </TableBody>
         </Table>
-      </CardContent>
-      <CardFooter className="flex flex-wrap gap-4 border-t pt-4">
-        <Button type="button" variant="link" className="h-auto p-0 text-forest" render={<Link to="/competencies" />}>
-          Open benchmarks
-        </Button>
-        <Button type="button" variant="link" className="h-auto p-0 text-muted-foreground" render={<Link to="/reports" />}>
-          Full metrics
-        </Button>
-      </CardFooter>
+    </div>
+  )
+
+  const footerLinks = (
+    <>
+      <Button type="button" variant="link" className="h-auto p-0 text-forest" render={<Link to="/competencies" />}>
+        Open benchmarks
+      </Button>
+      <Button type="button" variant="link" className="h-auto p-0 text-muted-foreground" render={<Link to="/reports" />}>
+        Full metrics
+      </Button>
+    </>
+  )
+
+  if (variant === "editorial") {
+    return (
+      <section aria-labelledby="profile-readiness-figure" className="pt-2">
+        <h2 id="profile-readiness-figure" className="font-heading text-lg font-semibold tracking-tight">
+          Evidence by job profile
+        </h2>
+        <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
+          Figure 1. Overall readiness versus published benchmarks, grouped by designation. Select a row to open the
+          cohort or people view for {scopeLabel}.
+        </p>
+        <div className="mt-6 border border-border/70">{table}</div>
+        <p className="mt-2 text-[11px] text-muted-foreground">Source: live benchmark versions and cohort membership.</p>
+        <div className="mt-6 flex flex-wrap gap-4 border-t border-border/70 pt-4">{footerLinks}</div>
+      </section>
+    )
+  }
+
+  return (
+    <Card className="rounded-[var(--grove-radius-panel)] shadow-none">
+      <CardHeader>
+        <CardTitle className="font-heading">Profile readiness</CardTitle>
+        <CardDescription>
+          Overall readiness vs published benchmarks by job profile · {scopeLabel}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="overflow-x-auto">{table}</CardContent>
+      <CardFooter className="flex flex-wrap gap-4 border-t pt-4">{footerLinks}</CardFooter>
     </Card>
   )
 }

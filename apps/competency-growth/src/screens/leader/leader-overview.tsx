@@ -4,18 +4,15 @@ import { toast } from "sonner"
 
 import { useWorkspace } from "@/app/WorkspaceProvider"
 import { DataFrame } from "@/components/data-frame"
-import { Journey } from "@/components/grove/journey"
-import { PageIntro } from "@/components/grove/page-intro"
-import { StatCard } from "@/components/grove/stat-card"
+import { PortfolioArticleHeader } from "@/components/grove/editorial/portfolio-article-header"
+import { PortfolioBenchmarkChapter } from "@/components/grove/editorial/portfolio-benchmark-chapter"
+import { PortfolioSummarySection } from "@/components/grove/editorial/portfolio-summary-section"
 import { ProfileReadinessRollup } from "@/screens/leader/profile-readiness-rollup"
-import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { aggregateCohorts, buildProfileCatalogue, orgReadinessFromCatalogue, profileCoverage } from "@/domain/selectors"
 import type { JourneyStep } from "@/domain/types"
 import { MVP_COMPETENCY_CODE } from "@/fixtures/taxonomy"
 import { APP_NAME } from "@/lib/app-name"
-
-const SCOPE_LABEL = "Data and Analytics"
 
 export function LeaderOverview() {
   const navigate = useNavigate()
@@ -27,8 +24,11 @@ export function LeaderOverview() {
     scopeCodes,
     cohorts,
     benchmarkVersions,
+    taxonomyNodes,
+    scopeNodeId,
   } = useWorkspace()
 
+  const scopeLabel = taxonomyNodes.find((n) => n.id === scopeNodeId)?.label ?? "Data and Analytics"
   const primaryCompetencyCode = scopeCodes[0] ?? MVP_COMPETENCY_CODE
   const coverage = profileCoverage(primaryCompetencyCode, benchmarkVersions)
   const cohortRows = useMemo(
@@ -41,6 +41,7 @@ export function LeaderOverview() {
     [primaryCompetencyCode, benchmarkVersions, cohorts, people],
   )
   const orgReadiness = orgReadinessFromCatalogue(profileCatalogue)
+  const plansClosing = cohortRows.filter((c) => c.atRiskCount > 0).length
 
   const benchmarkJourney: JourneyStep[] = [
     { label: "Define benchmark", hint: `${coverage.published}/${coverage.total} profiles`, state: coverage.published > 0 ? "done" : "current" },
@@ -51,17 +52,15 @@ export function LeaderOverview() {
   ]
 
   return (
-    <div className="flex flex-col gap-4">
-      <PageIntro
-        eyebrow="Competency portfolio"
-        title="Good morning, Ananya."
-        lede={`See profile health, benchmark coverage, and cohort risk for ${SCOPE_LABEL}—one readiness roll-up per job profile, not skill-by-skill grids.`}
-        primary="Create benchmark"
-        secondary="Export snapshot"
-        onPrimary={() => navigate("/competencies")}
-        onSecondary={() => toast("Export queued", { description: `${SCOPE_LABEL} snapshot (PDF) is being generated.` })}
+    <article className="mx-auto flex w-full max-w-5xl flex-col gap-10 md:gap-12">
+      <PortfolioArticleHeader
+        scopeLabel={scopeLabel}
+        onCreateBenchmark={() => navigate("/competencies/benchmark")}
+        onExport={() => toast("Export queued", { description: `${scopeLabel} snapshot (PDF) is being generated.` })}
       />
-      {hasDualJourneyAccess && <Journey title="Benchmark cycle" steps={benchmarkJourney} />}
+
+      {hasDualJourneyAccess && <PortfolioBenchmarkChapter title="Benchmark cycle" steps={benchmarkJourney} />}
+
       <DataFrame
         preview={preview}
         onRetry={() => setPreview("ready")}
@@ -70,43 +69,47 @@ export function LeaderOverview() {
         emptyBody="Publish a job profile benchmark to see cohort readiness and coverage."
         emptyAction="Create benchmark"
         onEmptyAction={() => navigate("/competencies")}
-        errorMessage={`${APP_NAME} couldn’t load ${SCOPE_LABEL}. The last refresh was May 21, 4:10 PM.`}
+        errorMessage={`${APP_NAME} couldn’t load ${scopeLabel}. The last refresh was May 21, 4:10 PM.`}
       >
-        <div className="grid gap-4 xl:grid-cols-4">
-          <StatCard label="Profiles published" value={`${coverage.published}/${coverage.total}`} hint="Job profiles with a live benchmark" tone="dark" />
-          <StatCard label="Cohorts at risk" value={String(cohortsAtRisk)} hint="Profile cohorts needing attention" />
-          <StatCard
-            label="Competency readiness"
-            value={orgReadiness !== null ? `${orgReadiness}%` : "—"}
-            hint="Weighted vs published benchmarks"
+        <div className="flex flex-col gap-12">
+          <PortfolioSummarySection
+            scopeLabel={scopeLabel}
+            orgReadiness={orgReadiness}
+            coveragePublished={coverage.published}
+            coverageTotal={coverage.total}
+            cohortsAtRisk={cohortsAtRisk}
+            plansClosing={plansClosing}
           />
-          <StatCard label="Plans closing soon" value={String(cohortRows.filter((c) => c.atRiskCount > 0).length)} hint="Within 14 days · cohort level">
-            <Button type="button" variant="link" className="h-auto px-0 text-forest" onClick={() => navigate("/reports")}>
-              View reports
-            </Button>
-          </StatCard>
+          <ProfileReadinessRollup
+            variant="editorial"
+            competencyCode={primaryCompetencyCode}
+            scopeLabel={scopeLabel}
+            people={people}
+            benchmarkVersions={benchmarkVersions}
+            cohorts={cohorts}
+          />
         </div>
-        <ProfileReadinessRollup
-          competencyCode={primaryCompetencyCode}
-          scopeLabel={SCOPE_LABEL}
-          people={people}
-          benchmarkVersions={benchmarkVersions}
-          cohorts={cohorts}
-        />
       </DataFrame>
-    </div>
+    </article>
   )
 }
 
 function OverviewSkeleton() {
   return (
-    <>
-      <div className="grid gap-4 md:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-28 rounded-[var(--grove-radius-panel)]" />
-        ))}
+    <div className="flex flex-col gap-12">
+      <div className="grid gap-8 lg:grid-cols-[1fr_13rem]">
+        <div className="space-y-4">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-4 w-full max-w-prose" />
+          <Skeleton className="h-20 w-full max-w-prose" />
+        </div>
+        <div className="space-y-4 border-t pt-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-8">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-14 w-full" />
+          ))}
+        </div>
       </div>
-      <Skeleton className="h-64 rounded-[var(--grove-radius-panel)]" />
-    </>
+      <Skeleton className="h-72 w-full" />
+    </div>
   )
 }
