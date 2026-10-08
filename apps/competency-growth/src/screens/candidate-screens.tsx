@@ -3,6 +3,7 @@ import { toast } from "sonner"
 import { CheckIcon } from "lucide-react"
 
 import { Journey, StatCard } from "@/components/aptora"
+import { APP_NAME } from "@/lib/app-name"
 import { DataFrame, type Preview } from "@/components/data-frame"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -55,7 +56,7 @@ export function CandidateHome({
         emptyBody="Your Senior Associate plan appears after a competency leader publishes the role benchmark."
         emptyAction="Check again"
         onEmptyAction={onRetry}
-        errorMessage="Aptora couldn’t load Aarav Mehta’s Data Analytics plan."
+        errorMessage={`${APP_NAME} couldn’t load Aarav Mehta’s Data Analytics plan.`}
       >
         <div className="grid gap-4 xl:grid-cols-4">
           <StatCard label="Plan progress" value="68%" hint="On track · 18 days remaining" tone="dark" bars={[20, 28, 36, 44, 52, 60, 68]} />

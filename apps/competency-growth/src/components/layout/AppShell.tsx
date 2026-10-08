@@ -41,6 +41,8 @@ import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ChevronDownIcon, CheckIcon } from "lucide-react"
 
+import { APP_NAME } from "@/lib/app-name"
+
 export function AppShell() {
   const navigate = useNavigate()
   const {
@@ -60,7 +62,9 @@ export function AppShell() {
           <SidebarHeader className="gap-3 p-3">
             <div className="flex items-center gap-2 px-1 text-sidebar-foreground">
               <Mark />
-              <span className="font-heading text-base font-semibold tracking-tight">Aptora</span>
+              <span className="font-heading text-sm font-semibold leading-snug tracking-tight">
+                {APP_NAME}
+              </span>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger

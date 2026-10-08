@@ -2,6 +2,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 import { Journey, StatCard } from "@/components/aptora"
+import { APP_NAME } from "@/lib/app-name"
 import { DataFrame, type Preview } from "@/components/data-frame"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -69,7 +70,7 @@ export function LdHome({
         emptyBody="Skills in the taxonomy have no internal or public links yet."
         emptyAction="Map content"
         onEmptyAction={() => setOpen(true)}
-        errorMessage="Aptora couldn’t validate training links for Data Analytics."
+        errorMessage={`${APP_NAME} couldn’t validate training links for Data Analytics.`}
       >
         <div className="grid gap-4 xl:grid-cols-4">
           <StatCard label="Active programs" value="14" hint="6 competencies" />
@@ -183,7 +184,7 @@ export function ContentLibrary({ query }: { query: string }) {
     <Card className="rounded-2xl shadow-none">
       <CardHeader>
         <CardTitle>Content library</CardTitle>
-        <CardDescription>Links only. Aptora does not host the training.</CardDescription>
+        <CardDescription>Links only. {APP_NAME} does not host the training.</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>

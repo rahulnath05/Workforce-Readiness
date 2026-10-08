@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { aggregateCohorts, buildProfileCatalogue, orgReadinessFromCatalogue, profileCoverage } from "@/domain/selectors"
 import type { JourneyStep } from "@/domain/types"
 import { MVP_COMPETENCY_CODE } from "@/fixtures/taxonomy"
+import { APP_NAME } from "@/lib/app-name"
 
 const SCOPE_LABEL = "Data and Analytics"
 
@@ -69,7 +70,7 @@ export function LeaderOverview() {
         emptyBody="Publish a job profile benchmark to see cohort readiness and coverage."
         emptyAction="Create benchmark"
         onEmptyAction={() => navigate("/competencies")}
-        errorMessage={`Aptora couldn’t load ${SCOPE_LABEL}. The last refresh was May 21, 4:10 PM.`}
+        errorMessage={`${APP_NAME} couldn’t load ${SCOPE_LABEL}. The last refresh was May 21, 4:10 PM.`}
       >
         <div className="grid gap-4 xl:grid-cols-4">
           <StatCard label="Profiles published" value={`${coverage.published}/${coverage.total}`} hint="Job profiles with a live benchmark" tone="dark" />

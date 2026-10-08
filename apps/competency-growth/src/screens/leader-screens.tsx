@@ -2,6 +2,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 import { HeatCell, Journey, MomentumChart, StatCard } from "@/components/aptora"
+import { APP_NAME } from "@/lib/app-name"
 import { DataFrame, type Preview } from "@/components/data-frame"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -74,7 +75,7 @@ export function LeaderHome({
         emptyBody="Publish a benchmark to see readiness, learners, and the skill heatmap."
         emptyAction="Create benchmark"
         onEmptyAction={() => setOpen(true)}
-        errorMessage="Aptora couldn’t load the Data Analytics portfolio. The last refresh was May 21, 4:10 PM."
+        errorMessage={`${APP_NAME} couldn’t load the Data Analytics portfolio. The last refresh was May 21, 4:10 PM.`}
       >
         <div className="grid gap-4 xl:grid-cols-4">
           <StatCard label="Overall proficiency" value="72%" hint="↑ 8.4% vs. last quarter" tone="dark" bars={[35, 48, 42, 60, 55, 72, 68, 80]} />

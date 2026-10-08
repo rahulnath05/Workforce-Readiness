@@ -8,6 +8,7 @@ import { Journey } from "@/components/grove/journey"
 import { PageIntro } from "@/components/grove/page-intro"
 import { StatCard } from "@/components/grove/stat-card"
 import { Button } from "@/components/ui/button"
+import { APP_NAME } from "@/lib/app-name"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Dialog,
@@ -50,7 +51,7 @@ export function CandidateOverview() {
         emptyBody="Your Senior Associate plan appears after a competency leader publishes the role benchmark."
         emptyAction="Check again"
         onEmptyAction={() => setPreview("ready")}
-        errorMessage="Aptora couldn’t load Aarav Mehta’s Data Analytics plan."
+        errorMessage={`${APP_NAME} couldn’t load Aarav Mehta’s Data Analytics plan.`}
       >
         <div className="grid gap-4 xl:grid-cols-4">
           <StatCard label="Plan progress" value="68%" hint="On track · 18 days remaining" tone="dark" />

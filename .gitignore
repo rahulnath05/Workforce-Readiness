@@ -1,5 +1,8 @@
 .cursor/
 
+# Standalone Vite mockup; not used by apps/competency-growth
+mockups/benchline/
+
 Reference/Diagram 1 Competency Leader.svg
 Reference/Diagram 2 Candidate.svg
 Reference/Diagram 3 People Manager.svg

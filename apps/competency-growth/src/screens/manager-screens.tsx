@@ -2,6 +2,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 import { Journey, StatCard } from "@/components/aptora"
+import { APP_NAME } from "@/lib/app-name"
 import { DataFrame, type Preview } from "@/components/data-frame"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -57,7 +58,7 @@ export function ManagerHome({
         emptyBody="Team progress shows up after a competency leader assigns a benchmark."
         emptyAction="Refresh roster"
         onEmptyAction={onRetry}
-        errorMessage="Aptora couldn’t load Vikram Shah’s Data Analytics team."
+        errorMessage={`${APP_NAME} couldn’t load Vikram Shah’s Data Analytics team.`}
       >
         <div className="grid gap-4 xl:grid-cols-4">
           <StatCard label="On track" value="8" hint="67% of team" tone="dark" />
