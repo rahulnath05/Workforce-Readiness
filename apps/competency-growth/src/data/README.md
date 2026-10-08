@@ -6,7 +6,7 @@ All demo / replaceable content for the app lives here. UI and domain logic impor
 
 | Path | Powers in the UI |
 |------|------------------|
-| **taxonomy/** | Org scope tree, per-competency **skill** taxonomy (benchmark wizard picker, validation, heatmaps) |
+| **taxonomy/** | Org scope tree, per-competency **skill** taxonomy (map UI, benchmark wizard picker, validation, heatmaps) |
 | **workforce/designation-matrix.ts** | Designation levels + **job profiles** (Competencies table rows, cohort naming, heatmap axes) |
 | **workforce/benchmark-templates.ts** | Default skill targets per profile, audience/headcount, published benchmark skill matrix |
 | **workforce/competencies.ts** | Competency catalogue + **initial published benchmark versions** (`SEED_PUBLISHED_PROFILES`) |

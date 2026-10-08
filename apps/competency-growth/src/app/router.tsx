@@ -11,6 +11,7 @@ import { OverviewPage } from "@/screens/overview/overview-page"
 import { PeoplePage } from "@/screens/people/people-page"
 import { ReportCardReviewPage } from "@/screens/people/report-card-review"
 import { ReportsPage } from "@/screens/reports/reports-page"
+import { TaxonomyMapPage } from "@/screens/taxonomy/taxonomy-map-page"
 
 export const router = createBrowserRouter([
   {
@@ -23,6 +24,7 @@ export const router = createBrowserRouter([
       { path: "people", element: <PeoplePage /> },
       { path: "people/:personId/report-card", element: <ReportCardReviewPage /> },
       { path: "reports", element: <ReportsPage /> },
+      { path: "taxonomy", element: <TaxonomyMapPage /> },
       { path: "content", element: <ContentPage /> },
       { path: "assessment", element: <AssessmentLabPage /> },
       { path: "blueprint", element: <BlueprintPage /> },

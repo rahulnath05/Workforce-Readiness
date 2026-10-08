@@ -7,6 +7,7 @@ import {
   LayoutDashboardIcon,
   LibraryIcon,
   MapIcon,
+  NetworkIcon,
   SearchIcon,
   UsersIcon,
 } from "lucide-react"
@@ -115,6 +116,7 @@ export function AppShell() {
                   <NavSidebar to="/competencies" icon={BookOpenIcon} label="Benchmarks" />
                   <NavSidebar to="/people" icon={UsersIcon} label="People" badge={String(people.length)} />
                   <NavSidebar to="/reports" icon={LayoutDashboardIcon} label="Reports" />
+                  <NavSidebar to="/taxonomy" icon={NetworkIcon} label="Taxonomy map" />
                   <NavSidebar to="/content" icon={LibraryIcon} label="Content library" />
                   <NavSidebar to="/assessment" icon={FlaskConicalIcon} label="Assessment lab" />
                   <NavSidebar to="/blueprint" icon={MapIcon} label="Blueprint" />
