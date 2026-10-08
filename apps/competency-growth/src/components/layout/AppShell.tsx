@@ -105,12 +105,12 @@ export function AppShell() {
             </DropdownMenu>
           </SidebarHeader>
           <SidebarContent>
-            <SidebarGroup>
-              <SidebarGroupLabel className="text-[10px] tracking-wide text-sidebar-foreground/60 uppercase">
+            <SidebarGroup className="gap-3 px-3 py-3">
+              <SidebarGroupLabel className="h-auto px-1 py-0.5 text-[10px] tracking-wide text-sidebar-foreground/60 uppercase">
                 Workspace
               </SidebarGroupLabel>
               <SidebarGroupContent>
-                <SidebarMenu>
+                <SidebarMenu className="gap-1.5">
                   <NavSidebar to="/" icon={LayoutDashboardIcon} label="Overview" />
                   <NavSidebar to="/competencies" icon={BookOpenIcon} label="Benchmarks" />
                   <NavSidebar to="/people" icon={UsersIcon} label="People" badge={String(people.length)} />
@@ -180,7 +180,12 @@ function NavSidebar({
   const isActive = to === "/" ? location.pathname === "/" : location.pathname.startsWith(to)
   return (
     <SidebarMenuItem>
-      <SidebarMenuButton type="button" isActive={isActive} onClick={() => navigate(to)}>
+      <SidebarMenuButton
+        type="button"
+        isActive={isActive}
+        className="h-9 gap-2.5 px-2.5"
+        onClick={() => navigate(to)}
+      >
         <Icon />
         <span>{label}</span>
       </SidebarMenuButton>

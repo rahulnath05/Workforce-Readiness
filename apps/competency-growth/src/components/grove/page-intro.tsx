@@ -14,7 +14,7 @@ export function PageIntro({
 }: {
   eyebrow: string
   title: string
-  lede: string
+  lede?: string
   aside?: ReactNode
   primary?: string
   secondary?: string
@@ -26,7 +26,7 @@ export function PageIntro({
       <div className="max-w-2xl">
         <p className="text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">{eyebrow}</p>
         <h1 className="font-heading mt-1 text-2xl font-semibold tracking-tight md:text-[28px]">{title}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{lede}</p>
+        {lede?.trim() ? <p className="mt-1 text-sm text-muted-foreground">{lede}</p> : null}
       </div>
       <div className="flex flex-wrap items-center justify-start gap-3 sm:justify-end">
         {aside}

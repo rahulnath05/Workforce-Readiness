@@ -12,7 +12,7 @@ All demo / replaceable content for the app lives here. UI and domain logic impor
 | **workforce/competencies.ts** | Competency catalogue + **initial published benchmark versions** (`SEED_PUBLISHED_PROFILES`) |
 | **workforce/cohorts.ts** | **One cohort per job profile** — leads, members rollup on Competencies / Cohorts |
 | **workforce/people.ts** | Learner roster, skills, readiness % driving table metrics |
-| **workforce/reports.ts** | Report cards + saved report list |
+| **workforce/reports.ts** | Report cards + **EXPORT_PACKS** (leader Reports export tiles) |
 | **org/personas.ts** | Sidebar persona switcher (Leader, Manager, L&D, Candidate) |
 | **demo/overview-panels.ts** | L&D / Manager / Candidate overview widgets (not the core workforce tables) |
 

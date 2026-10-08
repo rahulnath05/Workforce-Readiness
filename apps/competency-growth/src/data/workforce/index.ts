@@ -21,4 +21,10 @@ export {
   totalProfilesForCompetency,
 } from "@/data/workforce/designation-matrix"
 export { INITIAL_PEOPLE } from "@/data/workforce/people"
-export { INITIAL_REPORT_CARDS, SAVED_REPORTS } from "@/data/workforce/reports"
+export {
+  EXPORT_PACKS,
+  INITIAL_REPORT_CARDS,
+  SAVED_REPORTS,
+  type ExportPack,
+  type ExportPackFormat,
+} from "@/data/workforce/reports"

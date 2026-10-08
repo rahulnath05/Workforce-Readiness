@@ -1,4 +1,4 @@
-/** Skill×profile matrix — reserved for Reports ("Skill readiness matrix"); not used on Leader overview. */
+/** Skill×profile matrix — detailed view (e.g. competencies / lab), not Reports. */
 import { useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 import { ChevronDownIcon } from "lucide-react"
@@ -31,6 +31,7 @@ export function ReadinessHeatmap({
   benchmarkVersions,
   heatmapFilter,
   onCellClick,
+  variant = "default",
 }: {
   competencyCode: string
   scopeLabel: string
@@ -38,7 +39,9 @@ export function ReadinessHeatmap({
   benchmarkVersions: BenchmarkVersion[]
   heatmapFilter: HeatmapFilter
   onCellClick: (skill: string, jobProfileId: string) => void
+  variant?: "default" | "compact"
 }) {
+  const compact = variant === "compact"
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => new Set())
 
   const skills = useMemo(
@@ -67,10 +70,17 @@ export function ReadinessHeatmap({
 
   return (
     <Card className="rounded-[var(--grove-radius-panel)] shadow-none">
-      <CardHeader>
-        <CardTitle className="font-heading">Readiness heatmap</CardTitle>
-        <CardDescription>Readiness vs published benchmark targets by job profile · {scopeLabel}</CardDescription>
-      </CardHeader>
+      {!compact && (
+        <CardHeader>
+          <CardTitle className="font-heading">Readiness heatmap</CardTitle>
+          <CardDescription>Readiness vs published benchmark targets by job profile · {scopeLabel}</CardDescription>
+        </CardHeader>
+      )}
+      {compact && (
+        <CardHeader className="pb-2">
+          <CardTitle className="font-heading text-base">Skill matrix</CardTitle>
+        </CardHeader>
+      )}
       <CardContent className="space-y-4">
         {groups.map((group) => {
           const collapsed = collapsedGroups.has(group.designation)
@@ -156,20 +166,22 @@ export function ReadinessHeatmap({
           )
         })}
       </CardContent>
-      <CardFooter className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>Lower</span>
-          <span className="inline-flex gap-0.5">
-            <i className="size-3 rounded-sm bg-heat-1" aria-hidden />
-            <i className="size-3 rounded-sm bg-heat-3" aria-hidden />
-            <i className="size-3 rounded-sm bg-heat-5" aria-hidden />
-          </span>
-          <span>Higher readiness</span>
-        </div>
-        <Button type="button" variant="link" className="h-auto p-0 text-forest" render={<Link to="/competencies" />}>
-          Open benchmarks
-        </Button>
-      </CardFooter>
+      {!compact && (
+        <CardFooter className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span>Lower</span>
+            <span className="inline-flex gap-0.5">
+              <i className="size-3 rounded-sm bg-heat-1" aria-hidden />
+              <i className="size-3 rounded-sm bg-heat-3" aria-hidden />
+              <i className="size-3 rounded-sm bg-heat-5" aria-hidden />
+            </span>
+            <span>Higher readiness</span>
+          </div>
+          <Button type="button" variant="link" className="h-auto p-0 text-forest" render={<Link to="/competencies" />}>
+            Open benchmarks
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   )
 }

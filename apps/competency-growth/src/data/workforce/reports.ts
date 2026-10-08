@@ -9,9 +9,24 @@ export const INITIAL_REPORT_CARDS: ReportCardRecord[] = [
   { id: "rc-sanjay", personId: "sanjay", competency: "Data Analytics", verdict: "Success", summary: "5 of 5 skills met", date: "13 May 2025", reviewStatus: "commented", leaderComment: "Strong close on governance narrative." },
 ]
 
-export const SAVED_REPORTS = [
-  ["Data Analytics quarterly outcomes", "Updated 22 May · PDF"],
-  ["Benchmark effectiveness v3.3", "Updated 18 May · XLSX"],
-  ["Role-level readiness by skill", "Updated 09 May · XLSX"],
-  ["At-risk cohort register", "Updated 06 May · CSV"],
+export type ExportPackFormat = "PDF" | "XLSX" | "CSV"
+
+export interface ExportPack {
+  id: string
+  label: string
+  format: ExportPackFormat
+  updated: string
+}
+
+export const EXPORT_PACKS: ExportPack[] = [
+  { id: "quarterly-outcomes", label: "Quarterly outcomes", format: "PDF", updated: "22 May" },
+  { id: "benchmark-effectiveness", label: "Benchmark effectiveness", format: "XLSX", updated: "18 May" },
+  { id: "readiness-by-skill", label: "Readiness by skill", format: "XLSX", updated: "09 May" },
+  { id: "at-risk-register", label: "At-risk register", format: "CSV", updated: "06 May" },
 ]
+
+/** @deprecated Use EXPORT_PACKS */
+export const SAVED_REPORTS: [string, string][] = EXPORT_PACKS.map((p) => [
+  p.label,
+  `Updated ${p.updated} · ${p.format}`,
+])

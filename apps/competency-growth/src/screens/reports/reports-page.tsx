@@ -1,12 +1,15 @@
 import { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { FileSpreadsheetIcon, FileTextIcon, TableIcon } from "lucide-react"
 import { toast } from "sonner"
 
 import { useWorkspace } from "@/app/WorkspaceProvider"
+import { DesignationReadinessOverview } from "@/components/grove/reports/designation-readiness-overview"
 import { PageIntro } from "@/components/grove/page-intro"
 import { StatCard } from "@/components/grove/stat-card"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   Select,
   SelectContent,
@@ -14,44 +17,99 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { SAVED_REPORTS } from "@/fixtures/reports"
+import { EXPORT_PACKS } from "@/data/workforce/reports"
+import {
+  atRiskCatalogueRows,
+  awaitingReviews,
+  filterCatalogueRows,
+  readinessByDesignation,
+} from "@/domain/report-aggregates"
+import type { RoleLevel } from "@/domain/types"
+import { buildProfileCatalogue, orgReadinessFromCatalogue, profileCoverage } from "@/domain/selectors"
+import { MVP_COMPETENCY_CODE } from "@/data/taxonomy"
+import { AtRiskCohortBoard } from "@/components/grove/reports/at-risk-cohort-board"
+import { ReviewQueuePanel } from "@/components/grove/reports/review-queue-panel"
+
+const FORMAT_ICONS = {
+  PDF: FileTextIcon,
+  XLSX: FileSpreadsheetIcon,
+  CSV: TableIcon,
+} as const
 
 export function ReportsPage() {
-  const navigate = useNavigate()
-  const { persona, cohorts, competencies, reportCards, scopeCodes, taxonomyNodes, scopeNodeId } = useWorkspace()
-  const [cohortFilter, setCohortFilter] = useState<string>("all")
-  const [competencyFilter, setCompetencyFilter] = useState<string>("all")
-
-  const scopeLabel = taxonomyNodes.find((n) => n.id === scopeNodeId)?.label ?? "Portfolio"
-
-  const awaiting = useMemo(
-    () => reportCards.filter((c) => c.reviewStatus === "awaiting"),
-    [reportCards],
-  )
+  const { persona } = useWorkspace()
 
   if (persona !== "leader") {
     return (
       <PageIntro
         eyebrow="Outcomes"
         title="Reports"
-        lede="Switch to Competency Leader persona for competency-scoped outcome packs."
+        lede="Switch to Competency Leader for outcome packs."
       />
     )
   }
 
-  const filteredCohorts = cohorts.filter(
-    (c) => (competencyFilter === "all" || c.competencyCode === competencyFilter) && (cohortFilter === "all" || c.id === cohortFilter),
+  return <LeaderReportsDashboard />
+}
+
+function LeaderReportsDashboard() {
+  const navigate = useNavigate()
+  const {
+    cohorts,
+    competencies,
+    reportCards,
+    scopeCodes,
+    taxonomyNodes,
+    scopeNodeId,
+    people,
+    benchmarkVersions,
+    setHeatmapFilter,
+  } = useWorkspace()
+  const [cohortFilter, setCohortFilter] = useState<string>("all")
+  const [competencyFilter, setCompetencyFilter] = useState<string>("all")
+
+  const scopeLabel = taxonomyNodes.find((n) => n.id === scopeNodeId)?.label ?? "Portfolio"
+
+  const activeCompetencyCode =
+    competencyFilter === "all"
+      ? scopeCodes[0] ?? MVP_COMPETENCY_CODE
+      : competencyFilter
+
+  const activeCompetency = competencies.find((c) => c.code === activeCompetencyCode)
+  const competencyNameForCards =
+    competencyFilter === "all" ? undefined : activeCompetency?.name
+
+  const catalogue = useMemo(
+    () => buildProfileCatalogue(activeCompetencyCode, benchmarkVersions, cohorts, people),
+    [activeCompetencyCode, benchmarkVersions, cohorts, people],
+  )
+
+  const filteredCatalogue = useMemo(
+    () => filterCatalogueRows(catalogue, { cohortId: cohortFilter, cohorts }),
+    [catalogue, cohortFilter, cohorts],
+  )
+
+  const orgReadiness = orgReadinessFromCatalogue(filteredCatalogue)
+  const coverage = profileCoverage(activeCompetencyCode, benchmarkVersions)
+  const atRiskTotal = filteredCatalogue.reduce((s, r) => s + r.atRiskCount, 0)
+  const designationRows = readinessByDesignation(filteredCatalogue)
+  const riskRows = atRiskCatalogueRows(filteredCatalogue).filter((r) => r.cohort)
+  const queue = awaitingReviews(reportCards, competencyNameForCards)
+  const reviewCount = queue.length
+
+  const scopedCohorts = cohorts.filter(
+    (c) => c.competencyCode === activeCompetencyCode,
   )
 
   return (
     <div className="flex flex-col gap-4">
       <PageIntro
-        eyebrow={`Outcomes & reporting · ${scopeLabel}`}
-        title="Competency outcomes"
-        lede="Benchmark effectiveness, role-level outcomes and cohort risk — filters apply to panels below."
-        secondary="Export board pack"
+        eyebrow={scopeLabel}
+        title="Reports"
+        secondary="Export"
         onSecondary={() => toast.success("Board pack queued", { description: "PDF generating" })}
       />
+
       <div className="flex flex-wrap gap-2">
         <Select value={competencyFilter} onValueChange={(v) => v && setCompetencyFilter(v)}>
           <SelectTrigger className="w-44" aria-label="Competency filter">
@@ -70,84 +128,68 @@ export function ReportsPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All cohorts</SelectItem>
-            {cohorts.map((c) => (
+            {scopedCohorts.map((c) => (
               <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
+
       <div className="grid gap-4 md:grid-cols-4">
-        <StatCard label="Successful" value="64%" hint="of 412 closed plans" tone="dark" />
-        <StatCard label="Partial" value="27%" hint="111 plans closed on expiry" />
-        <StatCard label="Failed" value="9%" hint="37 plans need follow-up" />
-        <StatCard label="Proficiency vs target" value="63%" hint="scoped skills" />
+        <StatCard
+          label="Readiness"
+          value={orgReadiness !== null ? `${orgReadiness}%` : "—"}
+          tone="dark"
+        />
+        <StatCard
+          label="Benchmarks"
+          value={`${coverage.published}/${coverage.total}`}
+          hint="Published profiles"
+        />
+        <StatCard label="At risk" value={String(atRiskTotal)} hint="Learners behind" />
+        <StatCard label="Reviews" value={String(reviewCount)} hint="Awaiting sign-off" />
       </div>
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="rounded-[var(--grove-radius-panel)] shadow-none">
-          <CardHeader>
-            <CardTitle className="font-heading text-base">Outcome by role level</CardTitle>
-            <CardDescription>Success rate of closed plans</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {[["Associate", 78], ["Sr. Associate", 71], ["Manager", 64], ["Sr. Manager", 55], ["Director", 48]].map(([role, pct]) => (
-              <div key={role} className="flex items-center gap-2 text-sm">
-                <span className="w-28">{role}</span>
-                <div className="h-2 flex-1 rounded-full bg-muted">
-                  <div className="h-2 rounded-full bg-forest" style={{ width: `${pct}%` }} />
-                </div>
-                <span className="w-10 text-right tabular-nums">{pct}%</span>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-        <Card className="rounded-[var(--grove-radius-panel)] shadow-none">
-          <CardHeader>
-            <CardTitle className="font-heading text-base">At-risk cohorts</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {filteredCohorts.map((c) => (
-              <div key={c.id} className="flex items-center justify-between gap-2 text-sm">
-                <div>
-                  <div className="font-medium">{c.name}</div>
-                  <div className="text-muted-foreground">{c.designationLevel}</div>
-                </div>
-                <Button type="button" size="sm" variant="outline" onClick={() => navigate(`/cohorts/${c.id}`)}>
-                  Open pack
-                </Button>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
+
+      <DesignationReadinessOverview
+        orgReadiness={orgReadiness}
+        rows={designationRows}
+        onSelectDesignation={(role: RoleLevel) => {
+          setHeatmapFilter({ role })
+          navigate("/people")
+        }}
+      />
+
+      <AtRiskCohortBoard rows={riskRows} people={people} />
+
+      <ReviewQueuePanel queue={queue} people={people} />
+
       <Card className="rounded-[var(--grove-radius-panel)] shadow-none">
-        <CardHeader>
-          <CardTitle className="font-heading text-base">Report cards awaiting review</CardTitle>
+        <CardHeader className="pb-2">
+          <CardTitle className="font-heading text-base">Export packs</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
-          {awaiting.map((card) => (
-            <div key={card.id} className="flex items-center justify-between rounded-lg border p-3 text-sm">
-              <div>
-                <div className="font-medium">{card.competency}</div>
-                <div className="text-muted-foreground">{card.verdict} · {card.summary}</div>
-              </div>
-              <Button type="button" size="sm" onClick={() => navigate(`/people/${card.personId}/report-card`)}>
-                Review
-              </Button>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-      <Card className="rounded-[var(--grove-radius-panel)] shadow-none">
-        <CardHeader>
-          <CardTitle className="font-heading text-base">Saved reports</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          {SAVED_REPORTS.map(([title, meta]) => (
-            <div key={title} className="flex justify-between border-b border-border/60 py-2 last:border-0">
-              <span>{title}</span>
-              <span className="text-muted-foreground">{meta}</span>
-            </div>
-          ))}
+        <CardContent className="grid gap-3 sm:grid-cols-2">
+          {EXPORT_PACKS.map((pack) => {
+            const Icon = FORMAT_ICONS[pack.format]
+            return (
+              <button
+                key={pack.id}
+                type="button"
+                className="flex items-start gap-3 rounded-lg border p-3 text-left transition-colors hover:bg-muted/50"
+                onClick={() =>
+                  toast.success("Export queued", {
+                    description: `${pack.label} · ${pack.format}`,
+                  })
+                }
+              >
+                <Icon className="mt-0.5 size-5 shrink-0 text-forest" aria-hidden />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium">{pack.label}</p>
+                  <p className="text-xs text-muted-foreground">{pack.updated}</p>
+                </div>
+                <Badge variant="outline" className="shrink-0 text-[10px]">{pack.format}</Badge>
+              </button>
+            )
+          })}
         </CardContent>
       </Card>
     </div>
