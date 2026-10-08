@@ -1,11 +1,13 @@
 import { Badge } from "@/components/ui/badge"
+import type { PersonStatus } from "@/domain/types"
 import type { SkillProgress, TeamStatus } from "@/fixtures/shared"
 
-export function TeamStatusBadge({ status }: { status: TeamStatus }) {
+export function TeamStatusBadge({ status }: { status: TeamStatus | PersonStatus }) {
   if (status === "Completed") return <Badge>Completed</Badge>
   if (status === "On track") return <Badge variant="secondary">On track</Badge>
   if (status === "Behind") return <Badge variant="destructive">Behind</Badge>
-  return <Badge variant="destructive">Failed</Badge>
+  if (status === "Failed") return <Badge variant="destructive">Failed</Badge>
+  return <Badge variant="destructive">Behind</Badge>
 }
 
 export function SkillStatusBadge({ status }: { status: SkillProgress }) {

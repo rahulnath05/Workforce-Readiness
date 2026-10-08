@@ -119,6 +119,7 @@ export interface PersonRecord {
   urgent?: boolean
   tint: string
   cohortId?: string
+  managerId?: string
   skills: PersonSkill[]
 }
 
@@ -157,6 +158,8 @@ export interface PersonaMeta {
   role: string
   initials: string
   tint: string
+  /** Workforce anchor for people who report to this persona (e.g. People Manager). */
+  recordId?: string
 }
 
 export interface HeatmapFilter {

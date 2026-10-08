@@ -42,6 +42,8 @@ import {
 import { buildCohortForProfile } from "@/domain/cohort-model"
 import type { PersonRecord } from "@/domain/types"
 import { getJobProfiles } from "@/fixtures/designation-matrix"
+import { LeaderPeoplePage } from "@/screens/people/leader-people-page"
+import { ManagerPeoplePage } from "@/screens/people/manager-people-page"
 
 export function PeoplePage() {
   const navigate = useNavigate()
@@ -49,6 +51,7 @@ export function PeoplePage() {
     persona,
     people,
     scopedPeople,
+    directReports,
     searchQuery,
     heatmapFilter,
     cohorts,
@@ -61,10 +64,11 @@ export function PeoplePage() {
   const daProfiles = getJobProfiles("DA")
 
   const list = useMemo(() => {
-    const base = persona === "leader" ? scopedPeople : people
+    const base =
+      persona === "leader" ? scopedPeople : persona === "manager" ? directReports : people
     const q = searchQuery.toLowerCase()
     return base.filter((p) => !q || `${p.name} ${p.focus} ${p.role}`.toLowerCase().includes(q))
-  }, [persona, scopedPeople, people, searchQuery])
+  }, [persona, scopedPeople, directReports, people, searchQuery])
 
   const filterLabel = heatmapFilter.skill
     ? `Short on ${heatmapFilter.skill}${heatmapFilter.role ? ` · ${heatmapFilter.role}` : ""}`
@@ -72,12 +76,24 @@ export function PeoplePage() {
       ? getJobProfile(heatmapFilter.jobProfileId)?.label ?? "Job profile"
       : "All in scope"
 
+  if (persona === "manager") {
+    return <ManagerPeoplePage />
+  }
+
+  if (persona === "leader") {
+    return <LeaderPeoplePage />
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <PageIntro
-        eyebrow="People directory"
-        title={persona === "leader" ? "Competency population" : "People"}
-        lede={`${filterLabel} — ${list.length} people`}
+        eyebrow={persona === "manager" ? "Your coachees" : "People directory"}
+        title={persona === "leader" ? "Competency population" : persona === "manager" ? "Direct reports" : "People"}
+        lede={
+          persona === "manager"
+            ? `Competency leaders publish benchmarks; your team assesses, learns, and closes cycles — ${list.length} coachee${list.length === 1 ? "" : "s"}`
+            : `${filterLabel} — ${list.length} people`
+        }
         primary={persona === "leader" ? "Manage cohorts" : undefined}
         onPrimary={() => setCohortDialog(true)}
       />
@@ -119,15 +135,7 @@ export function PeoplePage() {
                     </TableCell>
                   <TableCell>{person.progress}%</TableCell>
                   <TableCell>
-                    <TeamStatusBadge
-                      status={
-                        person.status === "Completed"
-                          ? "Completed"
-                          : person.status === "On track"
-                            ? "On track"
-                            : "Behind"
-                      }
-                    />
+                    <TeamStatusBadge status={person.status} />
                   </TableCell>
                   <TableCell>
                     <Button type="button" variant="outline" size="sm" onClick={() => setSelected(person)}>

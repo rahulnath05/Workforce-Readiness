@@ -1,29 +1,20 @@
-import { Fragment, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { ChevronDownIcon, EyeIcon, PencilIcon } from "lucide-react"
-import { cn } from "cn"
+import { toast } from "sonner"
 
 import { useWorkspace } from "@/app/WorkspaceProvider"
+import { BenchmarkCatalogueArticleHeader } from "@/components/grove/editorial/benchmark-catalogue-article-header"
+import { BenchmarkCatalogueSummarySection } from "@/components/grove/editorial/benchmark-catalogue-summary-section"
+import { BenchmarkProfileEditorialCatalogue } from "@/components/grove/editorial/benchmark-profile-editorial-catalogue"
 import {
+  aggregateCohorts,
   buildProfileCatalogue,
   canLeaderEditCompetency,
+  orgReadinessFromCatalogue,
   profileCoverage,
-  type ProfileCatalogueRow,
 } from "@/domain/selectors"
 import { ROLE_LEVELS } from "@/domain/types"
 import { getDesignationMeta } from "@/fixtures/designation-matrix"
-import { formatProficiencyShort } from "@/domain/proficiency"
-import { PageIntro } from "@/components/grove/page-intro"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
 import { MVP_COMPETENCY_CODE, TAXONOMY_NODES } from "@/fixtures/taxonomy"
 
 export function CompetenciesPage() {
@@ -35,6 +26,7 @@ export function CompetenciesPage() {
     scopeCodes,
     cohorts,
     people,
+    taxonomyNodes,
   } = useWorkspace()
   const navigate = useNavigate()
   const [expandedProfileId, setExpandedProfileId] = useState<string | null>(null)
@@ -44,6 +36,7 @@ export function CompetenciesPage() {
   const competency = competencies.find((c) => c.code === competencyCode)
   const coverage = profileCoverage(competencyCode, benchmarkVersions)
   const canEdit = canLeaderEditCompetency(competencyCode, scopeNodeId, TAXONOMY_NODES)
+  const scopeLabel = taxonomyNodes.find((n) => n.id === scopeNodeId)?.label ?? competency?.name ?? "Competency"
 
   const profileRows = useMemo(() => {
     const q = searchQuery.toLowerCase()
@@ -54,6 +47,21 @@ export function CompetenciesPage() {
     })
   }, [competencyCode, benchmarkVersions, cohorts, people, searchQuery])
 
+  const orgReadiness = orgReadinessFromCatalogue(profileRows)
+
+  const cohortRows = useMemo(
+    () => aggregateCohorts(cohorts, people, scopeCodes).sort((a, b) => b.atRiskCount - a.atRiskCount),
+    [cohorts, people, scopeCodes],
+  )
+  const cohortsAtRisk = cohortRows.filter((c) => c.atRiskCount > 0).length
+
+  const pullQuote =
+    coverage.published < coverage.total
+      ? `${coverage.total - coverage.published} job profile${coverage.total - coverage.published === 1 ? "" : "s"} still lack a published benchmark—coverage gaps will depress the roll-up until closed.`
+      : cohortsAtRisk > 0
+        ? `${cohortsAtRisk} cohort${cohortsAtRisk === 1 ? "" : "s"} show learners behind plan; prioritise unpublished or at-risk profiles in this catalogue.`
+        : "Benchmark coverage is complete for in-scope profiles; use this catalogue to review targets and cohort evidence before quarter close."
+
   const profileGroups = useMemo(() => {
     return ROLE_LEVELS.map((designation) => ({
       designation,
@@ -61,8 +69,6 @@ export function CompetenciesPage() {
       rows: profileRows.filter((pr) => pr.profile.designationLevel === designation),
     })).filter((g) => g.rows.length > 0)
   }, [profileRows])
-
-  const pageTitle = competency ? `${competency.name} benchmarks` : "Benchmarks"
 
   function openWizard(profileId?: string) {
     if (profileId) navigate(`/competencies/benchmark?profileId=${encodeURIComponent(profileId)}`)
@@ -84,216 +90,59 @@ export function CompetenciesPage() {
     })
   }
 
+  const searchActive = searchQuery.trim() || undefined
+
   return (
-    <div className="flex flex-col gap-4">
-      <PageIntro
-        eyebrow="Benchmark catalogue"
-        title={pageTitle}
-        lede={`${coverage.published} of ${coverage.total} job profiles published — open metrics on any row, or start a guided journey to publish or update a profile.`}
-        primary="New benchmark"
-        onPrimary={() => openWizard()}
+    <article className="mx-auto flex w-full max-w-5xl flex-col gap-10 md:gap-12">
+      <BenchmarkCatalogueArticleHeader
+        competencyName={competency ? `${competency.name} benchmarks` : "Benchmark catalogue"}
+        owner={competency?.owner}
+        published={coverage.published}
+        total={coverage.total}
+        searchActive={searchActive}
+        onNewBenchmark={() => openWizard()}
+        onExport={() =>
+          toast("Export queued", { description: `${scopeLabel} benchmark catalogue (PDF) is being generated.` })
+        }
       />
-      <Card className="rounded-[var(--grove-radius-panel)] shadow-none">
-        <CardHeader>
-          <CardTitle className="font-heading">Job profiles</CardTitle>
-          <CardDescription>
-            {competency?.owner ? `Owned by ${competency.owner}` : "Designation and profile catalogue"}
-            {coverage.published < coverage.total && (
-              <span className="text-muted-foreground"> · {coverage.total - coverage.published} profiles still need a benchmark</span>
-            )}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Job profile</TableHead>
-                <TableHead>Benchmark</TableHead>
-                <TableHead>Cohort lead</TableHead>
-                <TableHead>Members</TableHead>
-                <TableHead>Readiness</TableHead>
-                <TableHead>At risk</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {profileGroups.map((group) => {
-                const publishedInGroup = group.rows.filter((r) => r.publishStatus === "Published").length
-                const collapsed = collapsedGroups.has(group.designation)
-                return (
-                  <Fragment key={group.designation}>
-                    <TableRow
-                      className="bg-muted/40 hover:bg-muted/50 cursor-pointer"
-                      onClick={() => toggleGroup(group.designation)}
-                    >
-                      <TableCell colSpan={7} className="py-2.5">
-                        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                          <ChevronDownIcon
-                            className={cn(
-                              "size-3.5 shrink-0 text-muted-foreground transition-transform",
-                              collapsed && "-rotate-90",
-                            )}
-                            aria-hidden
-                          />
-                          <span className="font-heading text-sm font-semibold">{group.designation}</span>
-                          {group.meta && (
-                            <span className="text-xs text-muted-foreground">{group.meta.yoeRange}</span>
-                          )}
-                          <span className="text-xs text-muted-foreground">
-                            · {group.rows.length} profiles · {publishedInGroup}/{group.rows.length} published
-                          </span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                    {!collapsed &&
-                      group.rows.map((pr) => (
-                      <ProfileTableRows
-                        key={pr.profile.id}
-                        pr={pr}
-                        detailOpen={expandedProfileId === pr.profile.id}
-                        canEdit={canEdit}
-                        onToggleDetail={() =>
-                          setExpandedProfileId(expandedProfileId === pr.profile.id ? null : pr.profile.id)
-                        }
-                        onEdit={() => openWizard(pr.profile.id)}
-                      />
-                      ))}
-                  </Fragment>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
 
-    </div>
-  )
-}
+      <BenchmarkCatalogueSummarySection
+        scopeLabel={scopeLabel}
+        orgReadiness={orgReadiness}
+        coveragePublished={coverage.published}
+        coverageTotal={coverage.total}
+        cohortsAtRisk={cohortsAtRisk}
+        pullQuote={pullQuote}
+      />
 
-function ProfileTableRows({
-  pr,
-  detailOpen,
-  canEdit,
-  onToggleDetail,
-  onEdit,
-}: {
-  pr: ProfileCatalogueRow
-  detailOpen: boolean
-  canEdit: boolean
-  onToggleDetail: () => void
-  onEdit: () => void
-}) {
-  return (
-    <Fragment>
-      <TableRow>
-        <TableCell className="font-medium">
-          <div>{pr.profile.label}</div>
-          {pr.profile.family && (
-            <div className="text-xs font-normal text-muted-foreground">{pr.profile.family}</div>
-          )}
-        </TableCell>
-        <TableCell>
-          {pr.publishStatus === "Published" ? (
-            <span className="text-sm">
-              v{pr.version?.version} · {pr.version?.planWindow ?? "90 days"}
-            </span>
-          ) : (
-            <span className="text-sm text-muted-foreground">Not published</span>
-          )}
-        </TableCell>
-        <TableCell>{pr.leadName}</TableCell>
-        <TableCell>{pr.memberCount}</TableCell>
-        <TableCell>{pr.memberCount > 0 ? `${pr.avgReadinessPct}%` : "—"}</TableCell>
-        <TableCell className={pr.atRiskCount > 0 ? "text-[var(--grove-attention)] font-medium" : ""}>
-          {pr.atRiskCount}
-        </TableCell>
-        <TableCell className="text-right">
-          <div className="inline-flex items-center justify-end gap-0.5" onClick={(e) => e.stopPropagation()}>
-            <Button
-              type="button"
-              variant="ghost"
-              className={cn(
-                "size-6 p-0 text-muted-foreground hover:text-foreground",
-                detailOpen && "bg-muted text-foreground",
-              )}
-              aria-expanded={detailOpen}
-              aria-label={detailOpen ? "Hide benchmark and cohort details" : "View benchmark and cohort details"}
-              onClick={onToggleDetail}
-            >
-              <EyeIcon className="size-3.5" strokeWidth={1.75} />
-            </Button>
-            {canEdit && (
-              <Button
-                type="button"
-                variant="ghost"
-                className="size-6 p-0 text-muted-foreground hover:text-foreground"
-                aria-label={pr.version ? "Republish benchmark" : "Publish benchmark"}
-                onClick={onEdit}
-              >
-                <PencilIcon className="size-3.5" strokeWidth={1.75} />
-              </Button>
-            )}
+      <section aria-labelledby="catalogue-profiles-heading" className="border-t border-border/80 pt-10">
+        <h2 id="catalogue-profiles-heading" className="font-heading text-lg font-semibold tracking-tight">
+          Job profiles by designation
+        </h2>
+        <p className="mt-2 max-w-prose text-sm leading-relaxed text-muted-foreground">
+          Chapters follow designation level. Each row links benchmark version, cohort lead, and readiness evidence for{" "}
+          {scopeLabel}.
+        </p>
+        {profileGroups.length === 0 ? (
+          <p className="mt-8 text-sm text-muted-foreground">
+            {searchActive
+              ? `No job profiles match “${searchActive}”. Clear search or start a benchmark journey for a new profile.`
+              : "No job profiles are in scope for this competency yet."}
+          </p>
+        ) : (
+          <div className="mt-8">
+            <BenchmarkProfileEditorialCatalogue
+              groups={profileGroups}
+              collapsedGroups={collapsedGroups}
+              onToggleGroup={toggleGroup}
+              expandedProfileId={expandedProfileId}
+              onToggleDetail={(id) => setExpandedProfileId(expandedProfileId === id ? null : id)}
+              canEdit={canEdit}
+              onEditProfile={openWizard}
+            />
           </div>
-        </TableCell>
-      </TableRow>
-      {detailOpen && (
-        <TableRow className="bg-muted/20 hover:bg-muted/20">
-          <TableCell colSpan={7} className="pb-4">
-            <div className="grid gap-4 py-2 lg:grid-cols-2">
-              <div className="rounded-lg border bg-card p-3 text-sm">
-                <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                  Benchmark targets
-                </p>
-                {pr.version ? (
-                  <ul className="mt-2 space-y-1 text-xs">
-                    {pr.version.skills.map((s) => (
-                      <li key={s.name} className="flex justify-between gap-2">
-                        <span>{s.name}</span>
-                        <span className="text-muted-foreground">
-                          {formatProficiencyShort(s.targetProficiency)} · {s.targetProficiency}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="mt-2 text-muted-foreground">No published benchmark for this profile yet.</p>
-                )}
-              </div>
-              <div className="rounded-lg border bg-card p-3 text-sm">
-                <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                  Cohort snapshot
-                </p>
-                <dl className="mt-2 grid grid-cols-2 gap-2 text-xs">
-                  <div>
-                    <dt className="text-muted-foreground">Cohort</dt>
-                    <dd className="font-medium">{pr.cohort?.name ?? "—"}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground">Lead</dt>
-                    <dd className="font-medium">{pr.leadName}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground">Members</dt>
-                    <dd className="font-medium">{pr.memberCount}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground">Avg readiness</dt>
-                    <dd className="font-medium">{pr.memberCount > 0 ? `${pr.avgReadinessPct}%` : "—"}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground">At risk</dt>
-                    <dd className="font-medium">{pr.atRiskCount}</dd>
-                  </div>
-                  <div>
-                    <dt className="text-muted-foreground">Family</dt>
-                    <dd className="font-medium">{pr.profile.family ?? "—"}</dd>
-                  </div>
-                </dl>
-              </div>
-            </div>
-          </TableCell>
-        </TableRow>
-      )}
-    </Fragment>
+        )}
+      </section>
+    </article>
   )
 }

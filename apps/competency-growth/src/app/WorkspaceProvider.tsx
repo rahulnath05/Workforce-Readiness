@@ -8,7 +8,12 @@ import {
 } from "react"
 import { toast } from "sonner"
 
-import { canLeaderEditCompetency, filterPeopleInScope } from "@/domain/selectors"
+import {
+  canLeaderEditCompetency,
+  directReports as selectDirectReports,
+  filterPeopleInScope,
+  getManagerRecordId,
+} from "@/domain/selectors"
 import type {
   BenchmarkVersion,
   Cohort,
@@ -181,6 +186,7 @@ type WorkspaceValue = State & {
   hasDualJourneyAccess: boolean
   canEditInScope: boolean
   scopedPeople: PersonRecord[]
+  directReports: PersonRecord[]
   setPersona: (p: Persona) => void
   setScopeNodeId: (id: string) => void
   setPreview: (p: Preview) => void
@@ -224,6 +230,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     () => filterPeopleInScope(state.people, scopeCodes, state.heatmapFilter),
     [state.people, scopeCodes, state.heatmapFilter],
   )
+
+  const directReports = useMemo(() => {
+    const managerId = getManagerRecordId(state.persona, PERSONAS)
+    if (!managerId) return []
+    return selectDirectReports(state.people, managerId)
+  }, [state.persona, state.people])
 
   const publishBenchmark = useCallback(
     (input: PublishBenchmarkInput) => {
@@ -272,6 +284,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     hasDualJourneyAccess,
     canEditInScope,
     scopedPeople,
+    directReports,
     setPersona: (persona) => dispatch({ type: "setPersona", persona }),
     setScopeNodeId: (scopeNodeId) => {
       if (scopeNodeId === MVP_SCOPE_NODE_ID) {

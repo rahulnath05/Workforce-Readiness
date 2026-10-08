@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { Outlet, useLocation, useNavigate } from "react-router-dom"
 import { toast } from "sonner"
 import {
@@ -43,9 +44,11 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { ChevronDownIcon, CheckIcon } from "lucide-react"
 
 import { APP_NAME } from "@/lib/app-name"
+import { isRouteAllowedForPersona } from "@/lib/persona-routes"
 
 export function AppShell() {
   const navigate = useNavigate()
+  const location = useLocation()
   const {
     persona,
     personas,
@@ -53,8 +56,17 @@ export function AppShell() {
     searchQuery,
     setSearchQuery,
     people,
+    directReports,
   } = useWorkspace()
   const current = personas.find((p) => p.id === persona) ?? personas[0]
+  const isManager = persona === "manager"
+  const showBuilderNav = !isManager && persona !== "leader"
+
+  useEffect(() => {
+    if (!isRouteAllowedForPersona(persona, location.pathname)) {
+      navigate("/", { replace: true })
+    }
+  }, [persona, location.pathname, navigate])
 
   return (
     <TooltipProvider>
@@ -113,13 +125,24 @@ export function AppShell() {
               <SidebarGroupContent>
                 <SidebarMenu className="gap-1.5">
                   <NavSidebar to="/" icon={LayoutDashboardIcon} label="Overview" />
-                  <NavSidebar to="/competencies" icon={BookOpenIcon} label="Benchmarks" />
-                  <NavSidebar to="/people" icon={UsersIcon} label="People" badge={String(people.length)} />
+                  {!isManager && (
+                    <NavSidebar to="/competencies" icon={BookOpenIcon} label="Benchmarks" />
+                  )}
+                  <NavSidebar
+                    to="/people"
+                    icon={UsersIcon}
+                    label="People"
+                    badge={String(isManager ? directReports.length : people.length)}
+                  />
                   <NavSidebar to="/reports" icon={LayoutDashboardIcon} label="Reports" />
-                  <NavSidebar to="/taxonomy" icon={NetworkIcon} label="Taxonomy map" />
-                  <NavSidebar to="/content" icon={LibraryIcon} label="Content library" />
-                  <NavSidebar to="/assessment" icon={FlaskConicalIcon} label="Assessment lab" />
-                  <NavSidebar to="/blueprint" icon={MapIcon} label="Blueprint" />
+                  {showBuilderNav && (
+                    <>
+                      <NavSidebar to="/taxonomy" icon={NetworkIcon} label="Taxonomy map" />
+                      <NavSidebar to="/content" icon={LibraryIcon} label="Content library" />
+                      <NavSidebar to="/assessment" icon={FlaskConicalIcon} label="Assessment lab" />
+                      <NavSidebar to="/blueprint" icon={MapIcon} label="Blueprint" />
+                    </>
+                  )}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
@@ -146,8 +169,8 @@ export function AppShell() {
               <Input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search people, skills or competencies"
-                aria-label="Search people, skills or competencies"
+                placeholder={isManager ? "Search coachees or skills" : "Search people, skills or competencies"}
+                aria-label={isManager ? "Search coachees or skills" : "Search people, skills or competencies"}
                 className="rounded-full bg-card pl-8"
               />
             </div>

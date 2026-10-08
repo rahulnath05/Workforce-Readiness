@@ -5,7 +5,11 @@ import type {
   CompetencyRecord,
   HeatmapFilter,
   JobProfile,
+  Persona,
+  PersonaMeta,
   PersonRecord,
+  PersonStatus,
+  ReportCardRecord,
   RoleLevel,
   TaxonomyNode,
 } from "@/domain/types"
@@ -280,4 +284,57 @@ export function aggregateCohorts(
         leadName: lead?.name ?? "Unassigned",
       }
     })
+}
+
+export function getManagerRecordId(persona: Persona, personas: PersonaMeta[]): string | undefined {
+  if (persona !== "manager") return undefined
+  return personas.find((p) => p.id === "manager")?.recordId
+}
+
+function reportRiskScore(person: PersonRecord): number {
+  if (person.urgent) return 0
+  if (person.status === "Behind" || person.status === "Failed") return 1
+  if (person.status === "On track") return 2
+  return 3
+}
+
+export function directReports(people: PersonRecord[], managerRecordId: string): PersonRecord[] {
+  return people
+    .filter((p) => p.managerId === managerRecordId)
+    .sort((a, b) => reportRiskScore(a) - reportRiskScore(b) || a.name.localeCompare(b.name))
+}
+
+export interface TeamSummaryStats {
+  total: number
+  onTrack: number
+  behind: number
+  completed: number
+  failed: number
+  avgProgress: number
+  pendingReportCards: number
+  urgentCount: number
+}
+
+export function teamSummaryStats(
+  reports: PersonRecord[],
+  reportCards: ReportCardRecord[],
+): TeamSummaryStats {
+  const countBy = (status: PersonStatus) => reports.filter((p) => p.status === status).length
+  const reportIds = new Set(reports.map((p) => p.id))
+  const pendingReportCards = reportCards.filter(
+    (rc) => reportIds.has(rc.personId) && rc.reviewStatus === "awaiting",
+  ).length
+  const avgProgress =
+    reports.length ? Math.round(reports.reduce((s, p) => s + p.progress, 0) / reports.length) : 0
+
+  return {
+    total: reports.length,
+    onTrack: countBy("On track"),
+    behind: countBy("Behind"),
+    completed: countBy("Completed"),
+    failed: countBy("Failed"),
+    avgProgress,
+    pendingReportCards,
+    urgentCount: reports.filter((p) => p.urgent).length,
+  }
 }

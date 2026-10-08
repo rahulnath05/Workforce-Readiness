@@ -10,6 +10,8 @@ export function JourneyTaskShell({
   stepIndex,
   stepTotal,
   onSaveAndExit,
+  headerLink,
+  mobileProgress,
   contextRail,
   children,
   footer,
@@ -20,6 +22,10 @@ export function JourneyTaskShell({
   stepIndex: number
   stepTotal: number
   onSaveAndExit: () => void
+  /** Replaces default benchmark catalogue link (e.g. manager coachee directory). */
+  headerLink?: { to: string; label: string }
+  /** Shown below the header on narrow viewports when the context rail is hidden. */
+  mobileProgress?: ReactNode
   contextRail?: ReactNode
   children: ReactNode
   footer: ReactNode
@@ -33,10 +39,17 @@ export function JourneyTaskShell({
         <p className="text-xs font-medium tabular-nums text-muted-foreground">
           Step {stepIndex} of {stepTotal}
         </p>
-        <Link to="/competencies" className="text-xs font-medium text-forest hover:underline">
-          Benchmark catalogue
-        </Link>
+        {headerLink ? (
+          <Link to={headerLink.to} className="text-xs font-medium text-forest hover:underline">
+            {headerLink.label}
+          </Link>
+        ) : (
+          <Link to="/competencies" className="text-xs font-medium text-forest hover:underline">
+            Benchmark catalogue
+          </Link>
+        )}
       </div>
+      {mobileProgress && <div className="border-b border-border/50 py-3 lg:hidden">{mobileProgress}</div>}
 
       <div className="grid flex-1 gap-8 py-6 lg:grid-cols-[minmax(0,1fr)_14rem] lg:gap-10">
         <div className="flex min-w-0 flex-col">

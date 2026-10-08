@@ -11,7 +11,7 @@ All demo / replaceable content for the app lives here. UI and domain logic impor
 | **workforce/benchmark-templates.ts** | Default skill targets per profile, audience/headcount, published benchmark skill matrix |
 | **workforce/competencies.ts** | Competency catalogue + **initial published benchmark versions** (`SEED_PUBLISHED_PROFILES`) |
 | **workforce/cohorts.ts** | **One cohort per job profile** — leads, members rollup on Competencies / Cohorts |
-| **workforce/people.ts** | Learner roster, skills, readiness % driving table metrics |
+| **workforce/people.ts** | Learner roster, skills, readiness % driving table metrics; optional `managerId` links coachees to a People Manager (`MANAGER_RECORD_ID` in **org/personas.ts**) |
 | **workforce/reports.ts** | Report cards + **EXPORT_PACKS** (leader Reports export tiles) |
 | **org/personas.ts** | Sidebar persona switcher (Leader, Manager, L&D, Candidate) |
 | **demo/overview-panels.ts** | L&D / Manager / Candidate overview widgets (not the core workforce tables) |

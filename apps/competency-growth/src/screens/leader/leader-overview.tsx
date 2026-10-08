@@ -5,12 +5,10 @@ import { toast } from "sonner"
 import { useWorkspace } from "@/app/WorkspaceProvider"
 import { DataFrame } from "@/components/data-frame"
 import { PortfolioArticleHeader } from "@/components/grove/editorial/portfolio-article-header"
-import { PortfolioBenchmarkChapter } from "@/components/grove/editorial/portfolio-benchmark-chapter"
 import { PortfolioSummarySection } from "@/components/grove/editorial/portfolio-summary-section"
 import { ProfileReadinessRollup } from "@/screens/leader/profile-readiness-rollup"
 import { Skeleton } from "@/components/ui/skeleton"
 import { aggregateCohorts, buildProfileCatalogue, orgReadinessFromCatalogue, profileCoverage } from "@/domain/selectors"
-import type { JourneyStep } from "@/domain/types"
 import { MVP_COMPETENCY_CODE } from "@/fixtures/taxonomy"
 import { APP_NAME } from "@/lib/app-name"
 
@@ -19,7 +17,6 @@ export function LeaderOverview() {
   const {
     preview,
     setPreview,
-    hasDualJourneyAccess,
     people,
     scopeCodes,
     cohorts,
@@ -43,14 +40,6 @@ export function LeaderOverview() {
   const orgReadiness = orgReadinessFromCatalogue(profileCatalogue)
   const plansClosing = cohortRows.filter((c) => c.atRiskCount > 0).length
 
-  const benchmarkJourney: JourneyStep[] = [
-    { label: "Define benchmark", hint: `${coverage.published}/${coverage.total} profiles`, state: coverage.published > 0 ? "done" : "current" },
-    { label: "Validate taxonomy", hint: "Skills and levels", state: coverage.published > 0 ? "done" : "later" },
-    { label: "Publish & assign", hint: "Per job profile", state: coverage.published < coverage.total ? "current" : "done" },
-    { label: "Monitor readiness", hint: "Cohort roll-up", state: coverage.published === coverage.total ? "current" : "later" },
-    { label: "Review outcomes", hint: "Report cards", state: "later" },
-  ]
-
   return (
     <article className="mx-auto flex w-full max-w-5xl flex-col gap-10 md:gap-12">
       <PortfolioArticleHeader
@@ -58,8 +47,6 @@ export function LeaderOverview() {
         onCreateBenchmark={() => navigate("/competencies/benchmark")}
         onExport={() => toast("Export queued", { description: `${scopeLabel} snapshot (PDF) is being generated.` })}
       />
-
-      {hasDualJourneyAccess && <PortfolioBenchmarkChapter title="Benchmark cycle" steps={benchmarkJourney} />}
 
       <DataFrame
         preview={preview}

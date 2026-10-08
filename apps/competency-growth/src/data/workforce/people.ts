@@ -1,8 +1,11 @@
 import type { PersonRecord } from "@/domain/types"
 import { indexToProficiency, proficiencyIndex } from "@/domain/proficiency"
 import { cohortIdForJobProfile } from "@/domain/cohort-model"
+import { MANAGER_RECORD_ID } from "@/data/org/personas"
 import { getRecommendedSkills } from "@/data/workforce/benchmark-templates"
 import { getJobProfiles } from "@/data/workforce/designation-matrix"
+
+const VIKRAM_TEAM = MANAGER_RECORD_ID
 
 function skill(skill: string, assessed: number, target: number) {
   return {
@@ -158,6 +161,7 @@ const CORE_PEOPLE: PersonRecord[] = [
     due: "12 days",
     tint: "oklch(0.86 0.06 155)",
     cohortId: "cohort-da-senior-data-analyst",
+    managerId: VIKRAM_TEAM,
     skills: [
       skill("Python", 2, 3),
       skill("SQL", 4, 4),
@@ -179,6 +183,7 @@ const CORE_PEOPLE: PersonRecord[] = [
     due: "14 days",
     tint: "oklch(0.86 0.05 200)",
     cohortId: "cohort-da-senior-data-analyst",
+    managerId: VIKRAM_TEAM,
     skills: [
       skill("Python", 3, 3),
       skill("SQL", 4, 4),
@@ -201,6 +206,7 @@ const CORE_PEOPLE: PersonRecord[] = [
     urgent: true,
     tint: "oklch(0.86 0.06 55)",
     cohortId: "cohort-da-analytics-manager",
+    managerId: VIKRAM_TEAM,
     skills: [
       skill("Python", 3, 3),
       skill("SQL", 4, 4),
@@ -223,6 +229,7 @@ const CORE_PEOPLE: PersonRecord[] = [
     urgent: true,
     tint: "oklch(0.86 0.05 80)",
     cohortId: "cohort-da-principal-analyst",
+    managerId: VIKRAM_TEAM,
     skills: [
       skill("Python", 3, 3),
       skill("SQL", 4, 4),
@@ -244,6 +251,7 @@ const CORE_PEOPLE: PersonRecord[] = [
     due: "18 days",
     tint: "oklch(0.84 0.05 230)",
     cohortId: "cohort-da-data-analyst",
+    managerId: VIKRAM_TEAM,
     skills: skillsAtReadiness("da-data-analyst", 74),
   },
   {
@@ -259,6 +267,7 @@ const CORE_PEOPLE: PersonRecord[] = [
     due: "9 days",
     tint: "oklch(0.86 0.05 155)",
     cohortId: "cohort-da-analytics-engineer-ii",
+    managerId: VIKRAM_TEAM,
     skills: skillsAtReadiness("da-analytics-engineer-ii", 88),
   },
   {
@@ -274,6 +283,7 @@ const CORE_PEOPLE: PersonRecord[] = [
     due: "Closed",
     tint: "oklch(0.86 0.05 300)",
     cohortId: "cohort-da-sr-analytics-manager",
+    managerId: VIKRAM_TEAM,
     skills: skillsAtReadiness("da-sr-analytics-manager", 100),
   },
   {
@@ -304,6 +314,7 @@ const CORE_PEOPLE: PersonRecord[] = [
     due: "Ended",
     tint: "oklch(0.78 0.1 45)",
     cohortId: "cohort-da-financial-data-analyst",
+    managerId: VIKRAM_TEAM,
     skills: skillsAtReadiness("da-financial-data-analyst", 33),
   },
   {

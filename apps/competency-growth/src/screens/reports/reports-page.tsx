@@ -9,8 +9,8 @@ import { ReportsExportPanel } from "@/components/grove/reports/reports-export-pa
 import { ReportsOutcomeHero } from "@/components/grove/reports/reports-outcome-hero"
 import { ReportsScopeBar } from "@/components/grove/reports/reports-scope-bar"
 import { ReportsStrategicInsight } from "@/components/grove/reports/reports-strategic-insight"
-import { PageIntro } from "@/components/grove/page-intro"
 import { ReviewQueuePanel } from "@/components/grove/reports/review-queue-panel"
+import { PageIntro } from "@/components/grove/page-intro"
 import {
   atRiskCatalogueRows,
   awaitingReviews,
@@ -20,9 +20,14 @@ import {
 import type { RoleLevel } from "@/domain/types"
 import { buildProfileCatalogue, orgReadinessFromCatalogue, profileCoverage } from "@/domain/selectors"
 import { MVP_COMPETENCY_CODE } from "@/data/taxonomy"
+import { ManagerReportsPage } from "@/screens/reports/manager-reports-page"
 
 export function ReportsPage() {
   const { persona } = useWorkspace()
+
+  if (persona === "manager") {
+    return <ManagerReportsPage />
+  }
 
   if (persona !== "leader") {
     return (

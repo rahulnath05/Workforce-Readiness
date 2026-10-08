@@ -1,5 +1,7 @@
 import type { PersonaMeta } from "@/domain/types"
 
+export const MANAGER_RECORD_ID = "vikram-shah"
+
 export const PERSONAS: PersonaMeta[] = [
   {
     id: "leader",
@@ -24,6 +26,7 @@ export const PERSONAS: PersonaMeta[] = [
     role: "People Manager",
     initials: "VS",
     tint: "oklch(0.84 0.05 300)",
+    recordId: "vikram-shah",
   },
   {
     id: "ld",
