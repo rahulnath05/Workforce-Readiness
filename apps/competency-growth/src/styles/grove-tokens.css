@@ -1,0 +1,41 @@
+/*
+  Aptora Grove semantic tokens — mapped into shadcn variables in index.css
+*/
+
+:root {
+  --grove-font-heading: "Manrope", "Avenir Next", sans-serif;
+  --grove-font-body: "DM Sans", "Inter", sans-serif;
+
+  --grove-ink: #17221f;
+  --grove-ink-subtle: #45534e;
+  --grove-text-muted: #6f7b76;
+  --grove-text-faint: #929c98;
+  --grove-canvas: #f5f7f4;
+  --grove-surface: #ffffff;
+  --grove-surface-subtle: #fafbf9;
+  --grove-line: #dfe5e1;
+  --grove-line-subtle: #edf0ee;
+
+  --grove-evergreen: #172c2a;
+  --grove-evergreen-raised: #213b38;
+  --grove-nav-text: #aebdb9;
+  --grove-nav-text-strong: #ffffff;
+
+  --grove-positive: #147e6f;
+  --grove-positive-soft: #dcefe9;
+  --grove-attention: #e8785d;
+  --grove-attention-soft: #fce9e3;
+  --grove-warning: #ca7c27;
+  --grove-warning-soft: #f8edda;
+  --grove-neutral-soft: #e9eeeb;
+
+  --grove-data-teal-1: #eef1ef;
+  --grove-data-teal-2: #cbe6df;
+  --grove-data-teal-3: #70b7a7;
+  --grove-data-teal-4: #236f62;
+
+  --grove-radius-control: 8px;
+  --grove-radius-panel: 13px;
+  --grove-sidebar-width: 252px;
+  --grove-topbar-height: 72px;
+}
