@@ -76,7 +76,7 @@ export function LeaderOverview() {
           <StatCard label="Profiles published" value={`${coverage.published}/${coverage.total}`} hint="Job profiles with a live benchmark" tone="dark" />
           <StatCard label="Cohorts at risk" value={String(cohortsAtRisk)} hint="Profile cohorts needing attention" />
           <StatCard
-            label="Org readiness"
+            label="Competency readiness"
             value={orgReadiness !== null ? `${orgReadiness}%` : "—"}
             hint="Weighted vs published benchmarks"
           />

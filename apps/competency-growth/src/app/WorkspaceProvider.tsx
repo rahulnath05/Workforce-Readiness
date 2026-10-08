@@ -19,14 +19,20 @@ import type {
   ReportCardRecord,
   SkillTarget,
 } from "@/domain/types"
-import { COMPETENCIES, createInitialBenchmarkVersions, draftSkillsForProfile } from "@/fixtures/competencies"
-import { getProfileAudience } from "@/fixtures/benchmark-templates"
-import { getJobProfile } from "@/fixtures/designation-matrix"
-import { INITIAL_COHORTS } from "@/fixtures/cohorts"
-import { INITIAL_PEOPLE } from "@/fixtures/people"
-import { PERSONAS } from "@/fixtures/personas"
-import { INITIAL_REPORT_CARDS } from "@/fixtures/reports"
-import { MVP_COMPETENCY_CODE, MVP_SCOPE_NODE_ID, TAXONOMY_NODES } from "@/fixtures/taxonomy"
+import {
+  COMPETENCIES,
+  createInitialBenchmarkVersions,
+  draftSkillsForProfile,
+  getJobProfile,
+  getProfileAudience,
+  INITIAL_COHORTS,
+  INITIAL_PEOPLE,
+  INITIAL_REPORT_CARDS,
+  MVP_COMPETENCY_CODE,
+  MVP_SCOPE_NODE_ID,
+  PERSONAS,
+  TAXONOMY_NODES,
+} from "@/data"
 
 export type Preview = "ready" | "empty" | "loading" | "error"
 

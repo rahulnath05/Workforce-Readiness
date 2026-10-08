@@ -8,7 +8,7 @@ import { formatProficiencyShort, PROFICIENCY_LEVELS } from "@/domain/proficiency
 import type { ProficiencyLevel, RoleLevel, SkillTarget } from "@/domain/types"
 import { ROLE_LEVELS } from "@/domain/types"
 import { getDesignationMeta, getJobProfile, getJobProfiles } from "@/fixtures/designation-matrix"
-import { TAXONOMY_SKILLS } from "@/fixtures/taxonomy"
+import { TaxonomySkillPicker } from "@/components/grove/taxonomy-skill-picker"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -86,6 +86,7 @@ export function BenchmarkWizard({
     () => findCohortByJobProfile(cohorts, jobProfileId),
     [cohorts, jobProfileId],
   )
+  const addedSkillNames = useMemo(() => new Set(skills.map((s) => s.name)), [skills])
 
   useEffect(() => {
     if (!open) return
@@ -284,14 +285,21 @@ export function BenchmarkWizard({
                 ))}
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-                <Select onValueChange={(v) => { if (typeof v === "string") setCustomSkill(v) }}>
-                  <SelectTrigger className="w-full sm:w-52"><SelectValue placeholder="Add from taxonomy" /></SelectTrigger>
-                  <SelectContent>
-                    {(TAXONOMY_SKILLS[competencyCode] ?? []).filter((n) => !skills.some((s) => s.name === n)).map((n) => (
-                      <SelectItem key={n} value={n}>{n}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <TaxonomySkillPicker
+                  competencyCode={competencyCode}
+                  excludeNames={addedSkillNames}
+                  onSelect={(skill) => {
+                    setSkills([
+                      ...skills,
+                      {
+                        name: skill.name,
+                        type: skill.skillType,
+                        targetProficiency: "Intermediate",
+                        source: "taxonomy",
+                      },
+                    ])
+                  }}
+                />
                 <Input
                   placeholder="Or type skill name"
                   value={customSkill}
