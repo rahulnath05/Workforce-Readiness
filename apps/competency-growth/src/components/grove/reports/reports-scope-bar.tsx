@@ -1,4 +1,5 @@
 import { ChevronRightIcon, DownloadIcon } from "lucide-react"
+import { Link } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -43,7 +44,8 @@ export function ReportsScopeBar({
         <div>
           <h1 className="font-heading text-2xl font-semibold tracking-tight md:text-[1.75rem]">Workforce readiness</h1>
           <p className="mt-1 max-w-xl text-sm text-muted-foreground">
-            Organization view for board review — compare roles, surface exceptions, export narrative packs.
+            Quiet command view for {scopeLabel} — a few headline signals, role comparisons, and ranked exceptions for
+            quarterly review.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -75,6 +77,9 @@ export function ReportsScopeBar({
           <Button type="button" variant="outline" className="h-9 gap-1.5" onClick={onExport}>
             <DownloadIcon className="size-3.5" aria-hidden />
             Board pack
+          </Button>
+          <Button type="button" variant="ghost" className="h-9 text-forest" render={<Link to="/competencies" />}>
+            Benchmarks
           </Button>
         </div>
       </div>
